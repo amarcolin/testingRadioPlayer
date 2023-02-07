@@ -1,0 +1,79 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+  <title>Shoutcast Radio Player with Google Cast</title> 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script> 
+</head> 
+<body> 
+  <audio id="player" controls autoplay> 
+    <source src="https://https.nvradios.com/radio/9328/stream" type="audio/mpeg"> 
+  </audio> 
+  <br> 
+  <p id="currentSong"></p>
+<button id="castButton">Cast</button>  
+  
+  <script> 
+    var currentSong = document.getElementById("currentSong"); 
+    
+    // Use an AJAX request to retrieve the data from the PHP script
+    setInterval(function() {
+        $.ajax({
+            type: 'GET',
+            url: 'getData.php', // URL of the PHP script
+            success: function(data) {
+                currentSong.innerHTML = data;
+            }
+        });
+    }, 5000); 
+    
+    // Initialize the Cast API
+    if (!chrome.cast || !chrome.cast.isAvailable) {
+      setTimeout(initializeCastApi, 1000);
+    }
+    
+    // Add a Cast button to the page
+    var castButton = document.createElement('button');
+    castButton.innerHTML = 'Cast';
+    document.body.appendChild(castButton);
+    
+    // Initialize the Cast API
+    function initializeCastApi() {
+      var sessionRequest = new chrome.cast.SessionRequest(chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID);
+      var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
+        sessionListener,
+        receiverListener);
+      chrome.cast.initialize(apiConfig, onInitSuccess, onError);
+    }
+    
+    // Handle a successful Cast API initialization
+    function onInitSuccess() {
+      castButton.style.display = 'block';
+      castButton.addEventListener('click', onClickCastButton);
+    }
+    
+    // Handle a Cast API initialization error
+    function onError() {
+      console.error('Cast API initialization error');
+    }
+    
+    // Handle a session connection error
+    function onSessionError(error) {
+      console.error('Session error: ' + error.message);
+    }
+    
+    // Handle a session connection success
+    function onSessionSuccess(session) {
+      var mediaInfo = new chrome.cast.media.MediaInfo(
+        'https://https.nvradios.com/radio/9328/stream',
+        'audio/mpeg');
+      var request = new chrome.cast.media.LoadRequest(mediaInfo);
+      session.loadMedia(request, onMediaSuccess, onMediaError);
+    }
+    
+    // Handle a successful media load
+    function onMediaSuccess() {
+      console.log('Media loaded successfully');
+  </script> 
+</body> 
+</html>
